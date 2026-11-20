@@ -36,23 +36,21 @@ Device installs replace the app under the same bundle ID and keep its data.
 
 ## One build for the device
 
-The device runs one Tolkara: the current device branch, built generic (`NATIVE_GUEST_SHIMS=GENERIC`, no `GUEST_EXE`), carrying every profile in `profiles/`. Every application on the device works from that one build. The device branch is `main`, or the branch named by `TOLKARA_DEVICE_BRANCH` in `local.env`.
+The device runs one Tolkara, built generic (`NATIVE_GUEST_SHIMS=GENERIC`, no `GUEST_EXE`), carrying every profile in `profiles/`. Every application on the device works from that one build. In this fork it is normally `phil`, or a feature branch being tried; the fork's own rules follow below.
 
-In this fork the device branch is `phil`; the fork's own rules follow below.
-
-- Never build or install an app for one application: no `TOLKARA_PROFILE` from `build/` or another folder, no `GUEST_EXE` build, no subset of profiles, no device build from a feature branch or worktree. Such builds silently drop the other applications' profiles; a Steam-only build left MegaBonk with no Wine libraries.
-- A new application's profile goes into `profiles/<id>/profile.json` and reaches the device through the device branch. Changing what an application needs means editing its profile there.
-- Branch work is merged into the device branch before it reaches the device. Commit it; uncommitted work in a worktree is not a version anyone can find.
+- Never build or install an app for one application: no `TOLKARA_PROFILE` from `build/` or another folder, no `GUEST_EXE` build, no subset of profiles, no device build from a worktree. Such builds silently drop the other applications' profiles; a Steam-only build left MegaBonk with no Wine libraries.
+- A new application's profile goes into `profiles/<id>/profile.json` and reaches the device through `phil`. Changing what an application needs means editing its profile there.
+- Commit before installing; uncommitted work is not a version anyone can find.
 - For an experiment, change one launch, not the build: `--guest-environment=NAME=value` and `--guest-arguments=` override a profile for that launch only.
-- Install with `tools/install.sh` from the device branch's checkout. With `TOLKARA_DEVICE_POLICY=main-only` in `local.env`, a device build refuses anything else (another branch, uncommitted changes, a one-application build); do not remove that setting or work around the check.
+- Install with `tools/install.sh` from the main checkout (not a worktree), on any committed branch. With `TOLKARA_DEVICE_POLICY=main-only` in `local.env`, a device build refuses uncommitted changes, a one-application build and a profile outside `profiles/`; do not remove that setting or work around the check.
 
 ## This fork: `philippegirard/tolkara-phil`
 
 `upstream` is `tolkara/tolkara`; `origin` is this fork. `phil` is the fork's default branch on GitHub.
 
-- **`phil` is the canonical build for the owner's device.** Whatever is on `phil` is what the device runs: install from `phil` only (`TOLKARA_DEVICE_BRANCH=phil` in `local.env`).
-- **Features reach `phil` through feature branches.** Make each change on `feature/<name>` from `phil`, run its tests, then merge it into `phil` and push. Do not commit to `phil` directly.
-- **`main` follows `tolkara/tolkara` and stays clean.** It may take commits only for a change to be proposed to the core Tolkara repository, for everyone. Such a change is branched from `main` (or `upstream/main`), is super clean and never depends on anything in `phil`: no fork rules, no `TOLKARA_DEVICE_BRANCH`, no fork-only features. It goes upstream as a pull request from this fork.
+- **`phil` is the canonical build for the owner's device.** To try a feature on the device before it is merged, install from its feature branch; any committed branch can be built. A feature is merged only once it is proven on the device; then install from `phil` again. A feature branch made before `phil` moved lacks the newer `phil` changes: rebase it onto `phil` before trying it if they matter.
+- **One pull request per feature into `phil`: the pull requests are the fork's feature registry.** Make each change on `feature/<name>` from `phil`, keep it to that one feature, run its tests, push the branch to `origin` and open a pull request on this fork with base `phil` that says what the feature does and how it was tested on the device. The owner merges it. Do not commit to `phil` directly. A feature that needs another unmerged one is branched from it, and its pull request says so.
+- **`main` follows `tolkara/tolkara` and stays clean.** It may take commits only for a change to be proposed to the core Tolkara repository, for everyone. Such a change is branched from `main` (or `upstream/main`), is super clean and never depends on anything in `phil`: no fork rules and no fork-only features. It goes upstream as a pull request from this fork.
 - **Keeping up with upstream.** Bring `main` up to date with `upstream/main`, rebase `phil` onto `main`, run the tests, and push `phil` with `--force-with-lease`. A change merged into `main` for upstream then reaches `phil` through this rebase.
 - Never push to `upstream`.
 
