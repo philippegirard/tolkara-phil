@@ -36,13 +36,15 @@ Device installs replace the app under the same bundle ID and keep its data.
 
 ## One build for the device
 
-The iPad runs one Tolkara: the current `main`, built generic (`NATIVE_GUEST_SHIMS=GENERIC`, no `GUEST_EXE`), carrying every profile in `profiles/`. Every application on the device works from that one build.
+The device runs one Tolkara: the current device branch, built generic (`NATIVE_GUEST_SHIMS=GENERIC`, no `GUEST_EXE`), carrying every profile in `profiles/`. Every application on the device works from that one build. The device branch is `main`, or the branch named by `TOLKARA_DEVICE_BRANCH` in `local.env`.
 
-- Never build or install an app for one application: no `TOLKARA_PROFILE` from `build/` or another folder, no `GUEST_EXE` build, no subset of profiles, no device build from a branch or worktree. Such builds silently drop the other applications' profiles; a Steam-only build left MegaBonk with no Wine libraries.
-- A new application's profile goes into `profiles/<id>/profile.json` and reaches the device through `main`. Changing what an application needs means editing its profile there.
-- Branch work is merged into `main` before it reaches the device. Commit it; uncommitted work in a worktree is not a version anyone can find.
+In this fork (`philippegirard/tolkara-phil`) the device branch is `phil`: upstream's `main` (`tolkara/tolkara`) plus this fork's own commits. `main` stays identical to upstream so that it can be synced; `phil` is rebased onto each new `main` and pushed with `--force-with-lease`. Features are made on their own branches (`feature/<name>`) from `phil` and merged into `phil` once their tests pass. A change meant for upstream is branched from `main` instead.
+
+- Never build or install an app for one application: no `TOLKARA_PROFILE` from `build/` or another folder, no `GUEST_EXE` build, no subset of profiles, no device build from a feature branch or worktree. Such builds silently drop the other applications' profiles; a Steam-only build left MegaBonk with no Wine libraries.
+- A new application's profile goes into `profiles/<id>/profile.json` and reaches the device through the device branch. Changing what an application needs means editing its profile there.
+- Branch work is merged into the device branch before it reaches the device. Commit it; uncommitted work in a worktree is not a version anyone can find.
 - For an experiment, change one launch, not the build: `--guest-environment=NAME=value` and `--guest-arguments=` override a profile for that launch only.
-- Install with `tools/install.sh` from the `main` checkout. With `TOLKARA_DEVICE_POLICY=main-only` in `local.env`, a device build refuses anything else; do not remove that setting or work around the check.
+- Install with `tools/install.sh` from the device branch's checkout. With `TOLKARA_DEVICE_POLICY=main-only` in `local.env`, a device build refuses anything else (another branch, uncommitted changes, a one-application build); do not remove that setting or work around the check.
 
 ## Coding Style & Naming Conventions
 
