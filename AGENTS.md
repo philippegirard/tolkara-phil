@@ -38,13 +38,23 @@ Device installs replace the app under the same bundle ID and keep its data.
 
 The device runs one Tolkara: the current device branch, built generic (`NATIVE_GUEST_SHIMS=GENERIC`, no `GUEST_EXE`), carrying every profile in `profiles/`. Every application on the device works from that one build. The device branch is `main`, or the branch named by `TOLKARA_DEVICE_BRANCH` in `local.env`.
 
-In this fork (`philippegirard/tolkara-phil`) the device branch is `phil`: upstream's `main` (`tolkara/tolkara`) plus this fork's own commits. `main` stays identical to upstream so that it can be synced; `phil` is rebased onto each new `main` and pushed with `--force-with-lease`. Features are made on their own branches (`feature/<name>`) from `phil` and merged into `phil` once their tests pass. A change meant for upstream is branched from `main` instead.
+In this fork the device branch is `phil`; the fork's own rules follow below.
 
 - Never build or install an app for one application: no `TOLKARA_PROFILE` from `build/` or another folder, no `GUEST_EXE` build, no subset of profiles, no device build from a feature branch or worktree. Such builds silently drop the other applications' profiles; a Steam-only build left MegaBonk with no Wine libraries.
 - A new application's profile goes into `profiles/<id>/profile.json` and reaches the device through the device branch. Changing what an application needs means editing its profile there.
 - Branch work is merged into the device branch before it reaches the device. Commit it; uncommitted work in a worktree is not a version anyone can find.
 - For an experiment, change one launch, not the build: `--guest-environment=NAME=value` and `--guest-arguments=` override a profile for that launch only.
 - Install with `tools/install.sh` from the device branch's checkout. With `TOLKARA_DEVICE_POLICY=main-only` in `local.env`, a device build refuses anything else (another branch, uncommitted changes, a one-application build); do not remove that setting or work around the check.
+
+## This fork: `philippegirard/tolkara-phil`
+
+`upstream` is `tolkara/tolkara`; `origin` is this fork. `phil` is the fork's default branch on GitHub.
+
+- **`phil` is the canonical build for the owner's device.** Whatever is on `phil` is what the device runs: install from `phil` only (`TOLKARA_DEVICE_BRANCH=phil` in `local.env`).
+- **Features reach `phil` through feature branches.** Make each change on `feature/<name>` from `phil`, run its tests, then merge it into `phil` and push. Do not commit to `phil` directly.
+- **`main` follows `tolkara/tolkara` and stays clean.** It may take commits only for a change to be proposed to the core Tolkara repository, for everyone. Such a change is branched from `main` (or `upstream/main`), is super clean and never depends on anything in `phil`: no fork rules, no `TOLKARA_DEVICE_BRANCH`, no fork-only features. It goes upstream as a pull request from this fork.
+- **Keeping up with upstream.** Bring `main` up to date with `upstream/main`, rebase `phil` onto `main`, run the tests, and push `phil` with `--force-with-lease`. A change merged into `main` for upstream then reaches `phil` through this rebase.
+- Never push to `upstream`.
 
 ## Coding Style & Naming Conventions
 
